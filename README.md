@@ -4,7 +4,6 @@
 ## Table of Contents
 * [General Info](#general-information)
 * [Tests](#tests)
-* [How to test](#testing)
 * [Usage](#usage)
 
 
