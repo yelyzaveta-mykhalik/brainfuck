@@ -1,25 +1,31 @@
 package brainfuck
 
+//Compiler represents structure of compiler
+//Where code is brainfuck program
+//Position is position of character in brainfuck program
+//Instructions - slice that refer to Instruction struct
 type Compiler struct {
-	code       string
-	codeLength int
-	position   int
+	code     string
+	position int
 
 	instructions []*Instruction
 }
 
+//NewCompiler creates instanse of Compiler struct
 func NewCompiler(code string) *Compiler {
 	return &Compiler{
 		code:         code,
-		codeLength:   len(code),
 		instructions: []*Instruction{},
 	}
 }
 
+//Compile iteraits through each symbol of brainfuck program and
+//execute commands from the program,
+//depending on the character of which they are represented
 func (c *Compiler) Compile() []*Instruction {
-	loopStack := []int{}
+	var loopStack = []int{}
 
-	for c.position < c.codeLength {
+	for c.position < len(c.code) {
 		current := c.code[c.position]
 
 		switch current {
@@ -52,10 +58,11 @@ func (c *Compiler) Compile() []*Instruction {
 	return c.instructions
 }
 
+//
 func (c *Compiler) CompileInstruction(char byte, insType InsType) {
 	count := 1
 
-	for c.position < c.codeLength-1 && c.code[c.position+1] == char {
+	for c.position < len(c.code)-1 && c.code[c.position+1] == char {
 		count++
 		c.position++
 	}
@@ -63,6 +70,7 @@ func (c *Compiler) CompileInstruction(char byte, insType InsType) {
 	c.CountArgs(insType, count)
 }
 
+//CountArgs return amount of symbols in brainfuck program
 func (c *Compiler) CountArgs(insType InsType, arg int) int {
 	ins := &Instruction{Type: insType, Argument: arg}
 	c.instructions = append(c.instructions, ins)
