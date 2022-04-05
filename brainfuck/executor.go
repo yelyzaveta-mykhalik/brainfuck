@@ -1,86 +1,40 @@
 package brainfuck
 
-import "io"
+//Execute is the main function of program that takes as an argument
+//string in Brainfuck and execute every instruction from this string
+func Execute(programCode string) {
 
-type Interpreter struct {
-	code []*Instruction
-	ip   int
+	//currentStack contains slice for executing commands in loop
+	var currentStack = []startingLoop{}
 
-	memory  [30000]int
-	dataPtr int
+	//In this loop, depending on type of symbol from string, we push instruction
+	//in currentStack
+	for i := 0; i < len(programCode); i++ {
+		var currentInstruction = instructions[programCode[i]]
 
-	input  io.Reader
-	output io.Writer
-
-	readBuf []byte
-}
-
-func NewInterpreter(instructions []*Instruction, in io.Reader, out io.Writer) *Interpreter {
-	return &Interpreter{
-		code:    instructions,
-		input:   in,
-		output:  out,
-		readBuf: make([]byte, 1),
-	}
-}
-
-func (intr *Interpreter) Execute() {
-	for intr.ip < len(intr.code) {
-		ins := intr.code[intr.ip]
-
-		switch ins.Type {
-		case Plus:
-			intr.memory[intr.dataPtr] += ins.Argument
-		case Minus:
-			intr.memory[intr.dataPtr] -= ins.Argument
-		case RightShift:
-			intr.dataPtr += ins.Argument
-		case LeftShift:
-			intr.dataPtr -= ins.Argument
-		case WriteChar:
-			for i := 0; i < ins.Argument; i++ {
-				intr.writeChar()
-			}
-		case ReadChar:
-			for i := 0; i < ins.Argument; i++ {
-				intr.readChar()
-			}
-		case LoopStart:
-			if intr.memory[intr.dataPtr] == 0 {
-				intr.ip = ins.Argument
-				continue
-			}
-		case LoopEnd:
-			if intr.memory[intr.dataPtr] != 0 {
-				intr.ip = ins.Argument
-				continue
-			}
+		switch t := currentInstruction.(type) {
+		case startingLoop:
+			//appending loop into currentStack
+			currentStack = append([]startingLoop{t}, currentStack...)
+		case endingLoop:
+			currentStack[1].loopStack = append(currentStack[1].loopStack, currentStack[0])
+			//popping elements of currentStack
+			currentStack = currentStack[1:(len(currentStack) + 1)]
+			//appending instructions to currentStack but into the loopStack
+		case plus, minus, shiftingRight, shiftingLeft, writeChar, readChar:
+			currentStack[0].loopStack = append(currentStack[0].loopStack, currentInstruction)
 		}
-
-		intr.ip++
 	}
+
+	//executing final slice of instructions
+	interpret(currentStack[0].loopStack)
 }
 
-func (intr *Interpreter) readChar() {
-	n, err := intr.input.Read(intr.readBuf)
-	if err != nil {
-		panic(err)
-	}
-	if n != 1 {
-		panic("Wrong num bytes had been read")
-	}
+//interpret execute all instructions
+func interpret(setOfInstructions []instruction) {
+	var memory memoryCell
 
-	intr.memory[intr.dataPtr] = int(intr.readBuf[0])
-}
-
-func (intr *Interpreter) writeChar() {
-	intr.readBuf[0] = byte(intr.memory[intr.dataPtr])
-
-	n, err := intr.output.Write(intr.readBuf)
-	if err != nil {
-		panic(err)
-	}
-	if n != 1 {
-		panic("Wrong num bytes had been written")
+	for _, i := range setOfInstructions {
+		i.compile(&memory)
 	}
 }
