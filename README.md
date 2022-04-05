@@ -14,13 +14,15 @@
 
 ## Tests
 There are provided some tests to test functionality of interpreter.
-Use this command to run it: <go test .>
+Use this command to run it: <go test brainfuck_test.go>
 Total coverage is 89.7%.
 
 
 ## Usage
-To run interpreter use command <go run ./. examples/example.bf>
-Also you can add new files .bf in folder "examples" to test interpreter.
+To run interpreter you need:
+Get brainfuck Api from github.com via command `go get "github.com/yelyzaveta-mykhalik/braimfuck"`
+Then run it from directory brainfuck via command `go run main.go`
+You can also modify an input of the program in main.go
 The result will be printed in console.
 
 
