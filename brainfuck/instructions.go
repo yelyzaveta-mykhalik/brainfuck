@@ -27,7 +27,7 @@ type memoryCell struct {
 }
 
 //instruction interface implements compile()
-//Via this method we can addd new functionality to Brainfuck interpreter
+//Via this method we can add new functionality to Brainfuck interpreter
 type instruction interface {
 	compile(m *memoryCell)
 }
@@ -35,7 +35,7 @@ type instruction interface {
 //plus type relates to char '+'
 type plus struct{}
 
-//implements compile for type plus
+//increments memory on 1 point
 func (pls plus) compile(m *memoryCell) {
 	m.cell[m.ptr]++
 }
@@ -43,7 +43,7 @@ func (pls plus) compile(m *memoryCell) {
 //minus type relates to char '-'
 type minus struct{}
 
-//implements compile for type minus
+//decrements memory on 1
 func (mns minus) compile(m *memoryCell) {
 	m.cell[m.ptr]--
 }
@@ -51,23 +51,27 @@ func (mns minus) compile(m *memoryCell) {
 //shiftingRight type relates to char '>'
 type shiftingRight struct{}
 
-//implements compile for type shiftRight
+//shift pointer to the right on 1
 func (sr shiftingRight) compile(m *memoryCell) {
 	m.ptr++
+	m.ptr %= sizeOfCell
 }
 
 //shiftingLeft type relates to char '<'
 type shiftingLeft struct{}
 
-//implements compile for type shiftLeft
+//shift pointer to the left on 1
 func (sl shiftingLeft) compile(m *memoryCell) {
 	m.ptr--
+	if m.ptr < 0 {
+		m.ptr = sizeOfCell - 1
+	}
 }
 
 //writeChar type relates to char '.'
 type writeChar struct{}
 
-//implements compile for type wryteChar
+//output char into terminal
 func (w writeChar) compile(m *memoryCell) {
 	fmt.Printf("%c", m.cell[m.ptr])
 }
@@ -75,9 +79,9 @@ func (w writeChar) compile(m *memoryCell) {
 //readChar type relates to char ','
 type readChar struct{}
 
-//implements compile for type readChar
+//read char from input in terminal
 func (r readChar) compile(m *memoryCell) {
-	fmt.Scanf("%c", m.cell[m.ptr])
+	fmt.Scanf("%c", &m.cell[m.ptr])
 }
 
 //startingLoop type relates to char '[' and contains slice
@@ -86,12 +90,12 @@ type startingLoop struct {
 	loopStack []instruction
 }
 
-//implements compile for type startingLoop, iterate through
-//all instructions in loopStack and compile them
+//iterates through all instructions in loopStack
+//and compile them
 func (stl startingLoop) compile(m *memoryCell) {
-	if m.cell[m.ptr] != 0 {
-		for _, loopItem := range stl.loopStack {
-			loopItem.compile(m)
+	for m.cell[m.ptr] != 0 {
+		for _, innerItem := range stl.loopStack {
+			innerItem.compile(m)
 		}
 	}
 }
@@ -99,7 +103,7 @@ func (stl startingLoop) compile(m *memoryCell) {
 //endingLoop type relates to char ']'
 type endingLoop struct{}
 
-//implements compile for type readChar
+//method for the end of the loop
 func (endl endingLoop) compile(m *memoryCell) {}
 
 //Instructions map contains the pairs of the instructions and
