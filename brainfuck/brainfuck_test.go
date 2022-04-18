@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestCompile(t *testing.T) {
+func TestInstructions(t *testing.T) {
 	m := memoryCell{}
 
 	testSet := []struct {
